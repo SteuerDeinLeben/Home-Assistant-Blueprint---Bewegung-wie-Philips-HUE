@@ -1,0 +1,59 @@
+blueprint:
+  name: Bewegung
+  description: Licht mit Bewegung einschalten, bei 30 Sekunden keine Bewegung auf 50% dimmen, weitere 30 Sekunden keine bewegung AUS
+  domain: automation
+  author: steuer dein leben
+  input:
+      licht_input:
+        name: Lichter
+        default: {}
+        selector:
+            entity:
+              domain:
+                - light
+      bewegungsmelder_input:
+        name: Bewegungsmelder
+        selector:
+            entity:
+              domain:
+                - binary_sensor
+              device_class: motion
+mode: restart
+trigger:
+  - platform: state
+    entity_id: !input bewegungsmelder_input
+    to: "on"
+condition: []
+actions:
+  - action: light.turn_on
+    metadata: {}
+    data:
+      brightness_pct: 100
+    target:
+      entity_id: !input licht_input
+  - wait_for_trigger:
+      - trigger: state
+        entity_id:
+          - !input bewegungsmelder_input
+        to: "off"
+        for:
+          hours: 0
+          minutes: 0
+          seconds: 30
+    continue_on_timeout: false
+  - action: light.turn_on
+    metadata: {}
+    data:
+      brightness_pct: 50
+    target:
+      entity_id: !input licht_input
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - action: light.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id: !input licht_input
